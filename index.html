@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Web de la asignatura</title>
+  <link rel="stylesheet" href="assets/css/estilos.css">
+</head>
+<body>
+  <button id="mpi-menu-btn" type="button" aria-label="Menú">☰</button>
+  <div class="mpi-layout">
+    <aside class="mpi-sidebar">
+      <a class="mpi-marca" href="#/">
+        <span class="mpi-marca-chip">ASIG</span>
+        <span class="mpi-marca-txt">Asignatura</span>
+      </a>
+      <nav id="mpi-nav" aria-label="Temas"></nav>
+      <footer class="mpi-pie">Material de estudio<br>Autor · Centro · Año</footer>
+    </aside>
+    <main id="mpi-main" class="mpi-main"></main>
+  </div>
+
+  <!-- Sin build, sin módulos ES, sin CDN: funciona bajo file:// y en GitHub Pages -->
+  <!-- 1) Resaltador de código: ELIGE el de tu lenguaje (debe casar con "lenguaje" del spec),
+          o quita esta línea si tu asignatura no tiene código. La plantilla trae C y Python. -->
+  <script src="assets/js/resaltar-c.js"></script>
+  <!-- <script src="assets/js/resaltar-py.js"></script> -->
+  <!-- 2) Datos compartidos (registros para visor-bits; borra si tu asignatura no tiene registros) -->
+  <script src="datos/registros.js"></script>
+  <!-- 3) Componentes (genéricos + los que crees para tu asignatura) -->
+  <script src="assets/js/componentes/visor-bits.js"></script>
+  <script src="assets/js/componentes/ejercicio-driver.js"></script>
+  <!-- añade aquí tus componentes: <script src="assets/js/componentes/mi-sim.js"></script> -->
+  <!-- 4) Registro de temas + contenido de cada tema -->
+  <script src="assets/js/temas.js"></script>
+  <script src="datos/temas/ejemplo-tema.js"></script>
+  <!-- añade aquí cada tema: <script src="datos/temas/<slug>.js"></script> -->
+  <!-- 5) Núcleo (router), buscador y modo examen -->
+  <script src="assets/js/examen.js"></script>
+  <script src="assets/js/buscador.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    // Menú lateral en móvil
+    (function () {
+      var btn = document.getElementById('mpi-menu-btn');
+      var lay = document.querySelector('.mpi-layout');
+      btn.addEventListener('click', function () { lay.classList.toggle('mpi-sidebar-abierta'); });
+      document.getElementById('mpi-main').addEventListener('click', function () { lay.classList.remove('mpi-sidebar-abierta'); });
+    })();
+  </script>
+</body>
+</html>

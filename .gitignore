@@ -1,0 +1,8 @@
+# Material de origen pesado (no necesario para la web)
+contenido/
+*.pdf
+# Entornos y temporales
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
