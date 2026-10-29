@@ -11,8 +11,9 @@
  *   1) Pide explícitamente un workflow (la tool requiere opt-in: di "usa un
  *      workflow" o invoca con la keyword acordada).
  *   2) Pasa los temas a generar en `args` (array de {slug, titulo, alcance}).
- *   3) Elige el modelo al lanzar: por defecto los agentes heredan el modelo de
- *      la sesión (pon /model claude-opus-4-8 antes), o fija opts.model por agente.
+ *   3) El modelo va fijado por agente (MODELO_AUTOR / MODELO_VERIFICADOR -> opts.model):
+ *      autor en Sonnet, verificador en Opus. Ver la tabla "Qué modelo usar en cada
+ *      fase" de GUIA.md §5 antes de cambiarlos.
  *   4) Al terminar, regenera los .js:  python3 herramientas/spec_a_tema.py --sin-aviso
  *      e intégralos en temas.js e index.html, y verifica en el navegador.
  *
@@ -34,6 +35,13 @@ export const meta = {
 const ASIGNATURA     = '{ASIGNATURA}';
 const CARPETA_FUENTE = 'contenido/';            // material (transparencias, libro, exámenes)
 const FUENTE_VERDAD  = '{datasheet/manual oficial}';  // de dónde se reconstruyen datos/fórmulas/código
+// Modelos por agente (GUIA.md §5): 'haiku' | 'sonnet' | 'opus' | 'fable'.
+const MODELO_AUTOR       = 'sonnet';  // el grueso del gasto, y con verificación detrás.
+                                      // Súbelo a 'opus' si los temas llevan MathML, tablas
+                                      // numéricas, registros de bits o código real — pero el
+                                      // MISMO para todos los temas: la caché es por modelo.
+const MODELO_VERIFICADOR = 'opus';    // última línea de defensa (resuelve ejercicios, recalcula
+                                      // tablas). Nunca por debajo del autor; nunca 'haiku'.
 // Temas a procesar: pásalos en `args`, o usa este valor por defecto.
 const TEMAS = (Array.isArray(args) && args.length) ? args : [
   // { slug: 'mi-tema', titulo: 'Mi tema', alcance: 'qué entra según el temario' },
@@ -79,13 +87,15 @@ function promptVerificador(t) {
 
 // Pipeline: cada tema fluye autor -> verificador de forma independiente
 // (sin barrera entre fases: un tema puede estar verificándose mientras otro
-//  aún se escribe). Para fijar Opus 4.8 por agente: opts.model = 'opus'.
+//  aún se escribe). El modelo de cada agente sale de las constantes de arriba.
 const resultados = await pipeline(
   TEMAS,
-  (t) => agent(promptAutor(t), { label: `autor:${t.slug}`, phase: 'Autoría' })
-           .then(() => t),                       // el agente escribe el archivo; pasamos el tema
+  (t) => agent(promptAutor(t), {
+           label: `autor:${t.slug}`, phase: 'Autoría', model: MODELO_AUTOR
+         }).then(() => t),                       // el agente escribe el archivo; pasamos el tema
   (t) => agent(promptVerificador(t), {
-           label: `verifica:${t.slug}`, phase: 'Verificación', schema: SCHEMA_VERIF
+           label: `verifica:${t.slug}`, phase: 'Verificación', schema: SCHEMA_VERIF,
+           model: MODELO_VERIFICADOR
          })
 );
 

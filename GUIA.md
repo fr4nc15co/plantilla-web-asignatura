@@ -191,6 +191,46 @@ es mucho más rápido.
 Así se construyó el contenido de estas webs, y es lo más reutilizable. Cada fase tiene su
 **plantilla de prompt** (cópiala y rellena los `{...}`).
 
+### Qué modelo usar en cada fase
+
+El gasto no se reparte por igual: **las fases 2 y 3 son el 80-90 % del total** (N temas ×
+corpus), mientras que la ficha, el mapa y la orquestación son ruido presupuestario — ahí usa
+siempre el modelo bueno.
+
+| Fase / tarea | Modelo | Effort | Por qué |
+|---|---|---|---|
+| **0** Ficha de la asignatura | Opus 5.5 | medium | Pocos tokens, pero cada error se propaga a los N temas. |
+| **0.5** Docling, inventario del material | Haiku 5.5 | low | Mecánico y verificable a ojo. |
+| **0.5** Diagnóstico de qué quedó corrupto | Sonnet 5.5 | high | Lectura larga, juicio acotado. |
+| **1** Mapa del corpus | Opus 5.5 | xhigh | Un solo tiro del que cuelga todo lo demás. Fable 5.1 si el corpus es enorme o se contradice. |
+| **2** Autoría de un spec (×N) | Sonnet 5.5 | high | El grueso del gasto, y con verificación detrás. **Opus 5.5** en temas con MathML, tablas numéricas, registros o código real. |
+| **3** Verificación adversarial (×N) | Opus 5.5 | xhigh | Resolver ejercicios y recalcular tablas es razonamiento puro, y es la última línea de defensa. Fable 5.1 si hay tabla de referencia crítica. **Haiku aquí no.** |
+| **4** Interactivos | Opus 5.5 | high | Código + pedagogía + depuración en navegador. Sonnet 5.5 para componentes triviales (slider → salida). |
+| **5** Contraste con transparencias | Sonnet 5.5 | high | Dos documentos largos, salida en informe, sin editar. |
+| Regenerar, integrar, checklist §7 | Haiku 5.5 | low | Determinista y comprobable. |
+| Verificar en el navegador | Haiku 5.5 | low | Sonnet 5.5 si hay que diagnosticar por qué no monta. |
+| Publicar en GitHub Pages (§6) | Haiku 5.5 | low | Secuencia de `git`. |
+| Orquestación (sesión principal) | Opus 5.5 | — | Decide qué se relanza y qué se da por bueno. |
+
+IDs y precio por millón de tokens (entrada/salida): `claude-haiku-5-5` ($0,10/$0,50),
+`claude-sonnet-5-5` ($2/$10), `claude-opus-5-5` ($4/$20, el modelo por defecto),
+`claude-fable-5-1` ($10/$50). En Claude Code se eligen con `/model`; en el workflow, con
+`opts.model` (`'haiku'`, `'sonnet'`, `'opus'`, `'fable'`).
+
+**Cuatro reglas que cambian la decisión:**
+
+1. **Sube el effort antes de bajar de modelo.** Sonnet 5.5 a `xhigh` suele salir mejor y más
+   barato que Opus a `medium`. Y ojo: el effort por defecto de Opus 5.5 es `medium`, no
+   `high`; si no lo pones explícito, pagas Opus y recibes menos de lo que crees.
+2. **El salto Opus/Sonnet ya solo es 2×** ($4/$20 frente a $2/$10). Si los temas son
+   técnicos, escribir bien a la primera sale más barato que una Fase 3 que corrige mucho.
+3. **No mezcles modelos entre autores de temas distintos.** La caché de prompt es *por
+   modelo*: si abanicas 10 temas sobre el mismo corpus, un solo modelo para todos los autores
+   reutiliza la caché; mezclarlos la rompe. Saca del lote solo el tema excepcional.
+4. **Autor ≠ verificador aunque coincida el modelo.** El valor de la Fase 3 está en el
+   contexto limpio —un agente que no escribió el spec—, y el verificador nunca va por debajo
+   del autor.
+
 ### Fase 0 — Ficha de la asignatura (decídela y guárdala ANTES de escribir)
 Este es el paso que más errores ahorra. La plantilla **no es C/PIC32 ni Python por
 defecto**: es agnóstica, y su origen (micros) no debe condicionar la asignatura nueva. Antes
@@ -285,9 +325,9 @@ Las fases 2 y 3 se pueden **abanicar a la vez** con la herramienta `Workflow` de
 en vez de lanzar los agentes a mano. La plantilla incluye el guion
 **`herramientas/flujo_contenido.workflow.js`**: un `pipeline()` autor→verificador por tema
 (cada tema avanza independiente). Rellena `ASIGNATURA`, `CARPETA_FUENTE` y `FUENTE_VERDAD`,
-pasa los temas en `args` y lánzalo con la tool `Workflow` (requiere opt-in explícito). El
-**modelo** se elige al ejecutar: pon `/model claude-opus-4-8` antes, o fija `opts.model` por
-agente. Es solo la orquestación; los prompts son los de arriba. Para hacerlo a mano (sin
+pasa los temas en `args` y lánzalo con la tool `Workflow` (requiere opt-in explícito). Los
+**modelos** ya vienen fijados por agente (`MODELO_AUTOR`/`MODELO_VERIFICADOR` → `opts.model`)
+según la tabla de arriba. Es solo la orquestación; los prompts son los de arriba. Para hacerlo a mano (sin
 workflow), no necesitas este archivo — basta con copiar los prompts de §5.
 
 ---

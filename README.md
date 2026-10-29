@@ -93,8 +93,11 @@ Rellena los `{...}` y envíalo:
 - **Requisitos:** solo **Python 3.7+** (biblioteca estándar). Sin `pip`, sin `venv`, sin
   `requirements.txt`, sin Node. Las herramientas son dos scripts (`spec_a_tema.py`,
   `servidor_dev.py`) y el sitio es HTML/CSS/JS plano.
-- **Modelo:** da igual cuál uses; los prompts son agnósticos. Para trabajo largo o crítico,
-  `/model claude-opus-4-8` (o el más capaz disponible). Ver `GUIA.md`.
+- **Modelo:** los prompts son agnósticos, pero no todas las fases piden lo mismo.
+  `/model claude-opus-5-5` para la ficha, el mapa del corpus, la verificación adversarial y
+  los interactivos; `claude-sonnet-5-5` para escribir los specs y contrastar transparencias;
+  `claude-haiku-5-5` para lo mecánico (regenerar, integrar, publicar). Y sube el *effort*
+  antes de bajar de modelo. Tabla completa en `GUIA.md §5`.
 - **Orquestación automática (opcional):** `herramientas/flujo_contenido.workflow.js` abanica
   autor+verificador de todos los temas a la vez con la herramienta `Workflow`. Para hacerlo a
   mano no hace falta.
